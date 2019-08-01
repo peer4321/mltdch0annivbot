@@ -1,5 +1,5 @@
 def get_msg():
-    import json, urllib.request, os, sys
+    import json, urllib.request, os, sys, time
     
     os.chdir(sys.path[0])
     os.makedirs('./logs', exist_ok=True)
@@ -9,6 +9,7 @@ def get_msg():
     
     def get_ranks(url):
         req = urllib.request.Request(url, None, headers)
+        time.sleep(0.1)
         with urllib.request.urlopen(req) as res:
             return json.loads(res.read().decode('utf-8'))['data']['rank']
     
@@ -34,10 +35,13 @@ def get_msg():
         with open('./logs/%d.txt' % p_index, 'r') as f:
             pts_30 = list(map(int, f.readline().strip().split()))
         delta_30 = [pts[i] - pts_30[i] for i in range(len(pts))]
-
+    
+    req = urllib.request.Request('https://prj.gamer.com.tw/2019/theaterdays/', None, headers)
+    with urllib.request.urlopen(req) as res:
+        uptime = res.read().decode('utf-8').split('last-upd')[1].split('<span>')[1].split('</span>')[0]
+    
     msg = '"劇場時光"宣傳製作人應援計畫\n'
-    uptime = max(map(lambda x: x['ctime'], data))
-    msg = msg + '更新: %s\n' % uptime
+    msg = msg + '更新時間: %s\n' % uptime
     loops = [('金賞', [0,1]), ('銀賞', [2,3]), ('銅賞', [4,5]), ('殘念', [6])]
     for prize, r in loops:
         for i in r:
