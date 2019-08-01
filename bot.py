@@ -21,7 +21,7 @@ def get_msg():
     
     with open('./index.txt', 'r') as f: index = int(f.readline().strip())
     p_index = index-1
-    pp_index = index-4
+    pp_index = index-48
     has_24 = os.path.exists('./logs/%d.txt' % pp_index)
     has_30 = os.path.exists('./logs/%d.txt' % p_index)
     
