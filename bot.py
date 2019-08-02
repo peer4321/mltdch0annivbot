@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 def get_msg():
     import json, urllib.request, os, sys, time
     
@@ -46,9 +48,9 @@ def get_msg():
     for prize, r in loops:
         for i in r:
             msg = msg + '%s %d位: %s | %d次' % (prize, ranks[i], ids[i], pts[i])
-            if has_30: msg = msg + ' (+%d)' % delta_30[i]
-            if has_24: msg = msg + ' [+%d]' % delta_24[i]
-            msg = msg + '\n'
+            if has_30: msg = msg + ' (+%d' % delta_30[i]
+            if has_24: msg = msg + '/+%d' % delta_24[i]
+            msg = msg + ')\n'
     msg = msg + '[emo1]\n'
     
     with open('./logs/%d.txt' % index, 'w') as f:
@@ -73,7 +75,20 @@ def post_plurk(msg, private=False):
     if private: options['limited_to'] = '[]'
     return plurk.callAPI('/APP/Timeline/plurkAdd', options=options)
 
+import sys
 msg = get_msg()
-with open('./log.txt', 'a') as f:
-    f.write(str(post_plurk(msg))+'\n')
+retry = 5
+i, res = 0, None
+while i < retry:
+    res = post_plurk(msg, len(sys.argv) > 1)
+    if res:
+        print('Success')
+        with open('./log.txt', 'a') as f: f.write('%s\n' % str(res))
+        break
+    i += 1
+    if i == retry:
+        print('Failed')
+        msg = 'Failed after %d tries: %s' % (retry, str(date.today()))
+        with open('./log.txt', 'a') as f: f.write('%s\n' % msg)
+        break
 
