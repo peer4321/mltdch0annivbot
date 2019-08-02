@@ -61,13 +61,7 @@ plt.savefig('figure.png')
 
 def post_img(private=False):
     from plurk_oauth import PlurkAPI
-    auth = {}
-    with open('./auth.txt', 'r') as f:
-        for line in f.readlines():
-            k, v = line.strip().split('|')
-            auth[k] = v
-    plurk = PlurkAPI(auth['CONSUMER_KEY'], auth['CONSUMER_SECRET'])
-    plurk.authorize(auth['ACCESS_TOKEN'], auth['ACCESS_TOKEN_SECRET'])
+    plurk = PlurkAPI.fromfile('./API.keys')
     res = plurk.callAPI('/APP/Timeline/uploadPicture', fpath='./figure.png')
     if not res: return None
     options = {'content': '"劇場時光"宣傳製作人應援計畫\n%s 走勢圖\n%s' % (_date, res['full']), 'qualifier': ':'}

@@ -64,13 +64,7 @@ def get_msg():
 
 def post_plurk(msg, private=False):
     from plurk_oauth import PlurkAPI
-    auth = {}
-    with open('./auth.txt', 'r') as f:
-        for line in f.readlines():
-            k, v = line.strip().split('|')
-            auth[k] = v
-    plurk = PlurkAPI(auth['CONSUMER_KEY'], auth['CONSUMER_SECRET'])
-    plurk.authorize(auth['ACCESS_TOKEN'], auth['ACCESS_TOKEN_SECRET'])
+    plurk = PlurkAPI.fromfile('./API.keys')
     options = {'content': msg, 'qualifier': ':'}
     if private: options['limited_to'] = '[]'
     return plurk.callAPI('/APP/Timeline/plurkAdd', options=options)
