@@ -16,6 +16,7 @@ def figall(post=True, private=False):
     import matplotlib.pyplot as plt
     import matplotlib.dates as mdates
     from matplotlib.font_manager import FontProperties
+    from matplotlib.ticker import AutoMinorLocator
     matplotlib.use('Agg')
     
     x = [datetime.strptime(rec[0], '%Y-%m-%d %H:%M:%S') for rec in records]
@@ -36,10 +37,16 @@ def figall(post=True, private=False):
     
     locator = mdates.AutoDateLocator(minticks=6, maxticks=12)
     formatter = mdates.ConciseDateFormatter(locator)
-    ax.xaxis.set_major_locator(locator)
-    ax.xaxis.set_major_formatter(formatter)
+    ax.xaxis.set(
+        major_locator=locator,
+        major_formatter=formatter,
+        minor_locator=mdates.HourLocator((0, 6, 12, 18))
+    )
+    ax.yaxis.set(
+        minor_locator=AutoMinorLocator()
+    )
     ax.grid(which='both')
-    ax.grid(which='minor', alpha=0.5)
+    ax.grid(which='minor', alpha=0.3)
     
     box = ax.get_position()
     ax.set_position([box.x0, box.y0 + box.height * 0.1, box.width, box.height * 0.9])
@@ -84,5 +91,7 @@ def figall(post=True, private=False):
 
 if __name__ == '__main__':
     import sys
-    figall(private=(len(sys.argv) > 1))
+    private, post = len(sys.argv) > 1, True
+    if private and 'local' == sys.argv[1]: post = False
+    figall(private=private, post=post)
 
