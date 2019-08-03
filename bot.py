@@ -42,6 +42,13 @@ def get_msg():
     with urllib.request.urlopen(req) as res:
         uptime = res.read().decode('utf-8').split('last-upd')[1].split('<span>')[1].split('</span>')[0]
     
+    with open('./logs/%d.txt' % index, 'w') as f:
+        for pt in pts: f.write(str(pt)+' ')
+        f.write('\n')
+        f.write('%s\n' % uptime)
+    with open('./index.txt', 'w') as f:
+        f.write(str(index+1)+'\n')
+    
     msg = '"劇場時光"宣傳製作人應援計畫\n'
     msg = msg + '更新時間: %s\n' % uptime
     loops = [('金賞', [0,1]), ('銀賞', [2,3]), ('銅賞', [4,5]), ('殘念', [6])]
@@ -49,40 +56,41 @@ def get_msg():
         for i in r:
             msg = msg + '%s %d位: %s | %d次' % (prize, ranks[i], ids[i], pts[i])
             if has_30: msg = msg + ' (+%d' % delta_30[i]
-            if has_24: msg = msg + '/+%d' % delta_24[i]
+            if has_24: msg = msg + '/%d' % delta_24[i]
             msg = msg + ')\n'
     msg = msg + '[emo1]\n'
-    
-    with open('./logs/%d.txt' % index, 'w') as f:
-        for pt in pts: f.write(str(pt)+' ')
-        f.write('\n')
-        f.write('%s\n' % uptime)
-    with open('./index.txt', 'w') as f:
-        f.write(str(index+1)+'\n')
-
     return msg
 
-def post_plurk(msg, private=False):
-    from plurk_oauth import PlurkAPI
-    plurk = PlurkAPI.fromfile('./API.keys')
-    options = {'content': msg, 'qualifier': ':'}
-    if private: options['limited_to'] = '[]'
-    return plurk.callAPI('/APP/Timeline/plurkAdd', options=options)
 
-import sys
-msg = get_msg()
-retry = 5
-i, res = 0, None
-while i < retry:
-    res = post_plurk(msg, len(sys.argv) > 1)
-    if res:
-        print('Success')
-        with open('./log.txt', 'a') as f: f.write('%s\n' % str(res))
-        break
-    i += 1
-    if i == retry:
-        print('Failed')
-        msg = 'Failed after %d tries: %s' % (retry, str(date.today()))
-        with open('./log.txt', 'a') as f: f.write('%s\n' % msg)
-        break
+def bot(post=True, private=False, retry=5):
+    
+    msg = get_msg()
+    if not post: return
+    
+    def post_plurk(msg, private=False, retry=5):
+        from plurk_oauth import PlurkAPI
+        plurk = PlurkAPI.fromfile('./API.keys')
+        options = {'content': msg, 'qualifier': ':'}
+        if private: options['limited_to'] = '[]'
+        for i in range(retry):
+            try: return plurk.callAPI('/APP/Timeline/plurkAdd', options=options)
+            except: pass
+        return None
+    
+    for i in range(retry):
+        res = post_plurk(msg, private=private, retry=retry)
+        if res:
+            print('Success')
+            with open('./log.txt', 'a') as f: f.write('%s\n'%str(res))
+            break
+        if i == retry:
+            print('Failed')
+            msg = 'Failed after %d tries: %s' % (retry, str(date.today()))
+            with open('./log.txt', 'a') as f: f.write('%s\n' % msg)
+            break
+
+
+if __name__ == '__main__':
+    import sys
+    bot(private=(len(sys.argv) > 1))
 
