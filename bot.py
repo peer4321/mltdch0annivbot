@@ -22,7 +22,9 @@ def get_msg():
     ids = [data[r-1]['username'] for r in ranks]
     pts = [int(data[r-1]['count']) for r in ranks]
     
-    with open('./index.txt', 'r') as f: index = int(f.readline().strip())
+    index = 0
+    try: index = max([int(x.split('.')[0]) for x in os.listdir('./logs')])+1
+    except ValueError: pass
     p_index = index-1
     pp_index = index-48
     has_24 = os.path.exists('./logs/%d.txt' % pp_index)
@@ -46,8 +48,6 @@ def get_msg():
         for pt in pts: f.write(str(pt)+' ')
         f.write('\n')
         f.write('%s\n' % uptime)
-    with open('./index.txt', 'w') as f:
-        f.write(str(index+1)+'\n')
     
     msg = '"劇場時光"宣傳製作人應援計畫\n'
     msg = msg + '更新時間: %s\n' % uptime
