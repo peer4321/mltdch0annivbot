@@ -54,6 +54,10 @@ def figday(post=True, private=False):
     )
     ax.grid(which='both')
     ax.grid(which='minor', alpha=0.3)
+    ax2 = ax.twinx()
+    ax2.set_ylim(ax.get_ylim())
+    ax2.set_yticks([y[r][-1] for r, idx in ranks])
+    ax2.set_yticklabels([y[r][-1] for r, idx in ranks])
     
     box = ax.get_position()
     ax.set_position([box.x0, box.y0 + box.height * 0.1, box.width, box.height * 0.9])
@@ -61,7 +65,6 @@ def figday(post=True, private=False):
     ax.set_title('%s 單日走勢'%_date, fontproperties=fptitle)
     ax.text(1, 1.1, '更新: %s'%(x[-1].strftime('%Y-%m-%d %H:%M:%S')), color='dimgray', ha='center', transform=ax.transAxes, fontproperties=fp, size=8)
     ax.text(1, -0.25, 'plurk: mltdch0annivbot', color='gray', ha='center', size=7, transform=ax.transAxes)
-    plt.grid(True)
     fig.autofmt_xdate()
     plt.savefig(figname)
     
