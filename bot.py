@@ -5,6 +5,7 @@ def get_msg():
     
     os.chdir(sys.path[0])
     os.makedirs('./logs', exist_ok=True)
+    os.makedirs('./json', exist_ok=True)
     
     _url = 'https://prj.gamer.com.tw/2019/theaterdays/ajax/rank.php?page='
     headers = { 'User-Agent': 'Mozilla/4.0 (compatible; MSIE 5.5; Windows NT)' }
@@ -43,6 +44,9 @@ def get_msg():
     req = urllib.request.Request('https://prj.gamer.com.tw/2019/theaterdays/', None, headers)
     with urllib.request.urlopen(req) as res:
         uptime = res.read().decode('utf-8').split('last-upd')[1].split('<span>')[1].split('</span>')[0]
+    
+    with open('./json/%d.json' % index, 'w') as f:
+        json.dump({'uptime': uptime, 'data': data}, f)
     
     with open('./logs/%d.txt' % index, 'w') as f:
         for pt in pts: f.write(str(pt)+' ')
