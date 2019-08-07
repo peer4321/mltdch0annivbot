@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-def get_msg():
+def get_msg(retry=5, nosave=False):
     import json, urllib.request, os, sys, time
     
     os.chdir(sys.path[0])
@@ -10,14 +10,31 @@ def get_msg():
     _url = 'https://prj.gamer.com.tw/2019/theaterdays/ajax/rank.php?page='
     headers = { 'User-Agent': 'Mozilla/4.0 (compatible; MSIE 5.5; Windows NT)' }
     
-    def get_ranks(url):
-        req = urllib.request.Request(url, None, headers)
-        time.sleep(0.1)
-        with urllib.request.urlopen(req) as res:
-            return json.loads(res.read().decode('utf-8'))['data']['rank']
+    def get_ranks(url, retry=5):
+        for i in range(retry):
+            try:
+                req = urllib.request.Request(url, None, headers)
+                with urllib.request.urlopen(req) as res:
+                    return json.loads(res.read().decode('utf-8'))['data']['rank']
+            except: time.sleep(0.1)
+        raise Exception('Get ranks error')
+    
+    def get_uptime(retry=5):
+        for i in range(retry):
+            try:
+                req = urllib.request.Request('https://prj.gamer.com.tw/2019/theaterdays/', None, headers)
+                with urllib.request.urlopen(req) as res:
+                    return res.read().decode('utf-8').split('last-upd')[1].split('<span>')[1].split('</span>')[0]
+            except: time.sleep(0.1)
+        return None
     
     data = []
-    for url in [_url+str(i) for i in range(1, 6)]: data.extend(get_ranks(url))
+    for url in [_url+str(i) for i in range(1, 6)]:
+        data.extend(get_ranks(url, retry=retry))
+        time.sleep(0.1)
+    
+    uptime = get_uptime(retry=retry)
+    if not uptime: uptime = max(map(lambda x: x['ctime'], data))
     
     ranks = [1, 2, 3, 12, 13, 52, 53]
     ids = [data[r-1]['username'] for r in ranks]
@@ -41,17 +58,13 @@ def get_msg():
             pts_30 = list(map(int, f.readline().strip().split()))
         delta_30 = [pts[i] - pts_30[i] for i in range(len(pts))]
     
-    req = urllib.request.Request('https://prj.gamer.com.tw/2019/theaterdays/', None, headers)
-    with urllib.request.urlopen(req) as res:
-        uptime = res.read().decode('utf-8').split('last-upd')[1].split('<span>')[1].split('</span>')[0]
-    
-    with open('./json/%d.json' % index, 'w') as f:
-        json.dump({'uptime': uptime, 'data': data}, f)
-    
-    with open('./logs/%d.txt' % index, 'w') as f:
-        for pt in pts: f.write(str(pt)+' ')
-        f.write('\n')
-        f.write('%s\n' % uptime)
+    if not nosave:
+        with open('./json/%d.json' % index, 'w') as f:
+            json.dump({'uptime': uptime, 'data': data}, f)
+        with open('./logs/%d.txt' % index, 'w') as f:
+            for pt in pts: f.write(str(pt)+' ')
+            f.write('\n')
+            f.write('%s\n' % uptime)
     
     msg = '"劇場時光"宣傳製作人應援計畫\n'
     msg = msg + '更新時間: %s\n' % uptime
@@ -66,18 +79,23 @@ def get_msg():
     return msg
 
 
-def bot(post=True, private=False, retry=5):
+def bot(post=True, private=False, retry=5, nosave=False):
     from plurk import add_plurk
-    msg = get_msg()
-    if not post: return
-    res = add_plurk(msg, private=private)
+    msg = get_msg(retry=retry, nosave=nosave)
+    if not post: return msg
+    res = add_plurk(msg, private=private, retry=retry)
     if not res:
         with open('./log.txt', 'a') as f: f.write('Failed to add plurk %s\n'%date.today().strftime('%Y-%m-%d %H:%M:%S'))
-        return
+        return None
     with open('./log.txt', 'a') as f: f.write('%s\n'%str(res))
+    return res
 
 
 if __name__ == '__main__':
     import sys
-    bot(private=(len(sys.argv) > 1))
+    private, post, nosave = len(sys.argv) > 1, True, False
+    if private and 'local' in sys.argv: post = False
+    if private and 'nosave' in sys.argv: nosave = True
+    res = bot(post=post, private=private, nosave=nosave)
+    if nosave: print(res)
 
