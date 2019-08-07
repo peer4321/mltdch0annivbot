@@ -7,15 +7,16 @@ def figday(post=True, private=False):
     figdir = './figures'
     figname = figdir + '/figday.png'
     os.makedirs(figdir, exist_ok=True)
-    _date = (date.today() - timedelta(days=1)).strftime('%Y-%m-%d')
-    __date = (date.today() - timedelta(days=2)).strftime('%Y-%m-%d')
+    
+    _date_1 = (date.today() - timedelta(days=1)).strftime('%Y-%m-%d')
+    _date_2 = (date.today() - timedelta(days=2)).strftime('%Y-%m-%d')
     records = []
     with open('./journal.txt', 'r') as f:
         for line in f.readlines():
-            if __date in line:
+            if _date_2 in line:
                 ts, pts = line.strip().split('|')
                 records = [(ts, pts.split())]
-            if _date in line:
+            if _date_1 in line:
                 ts, pts = line.strip().split('|')
                 records.append((ts, pts.split()))
     
@@ -55,6 +56,7 @@ def figday(post=True, private=False):
     ax.yaxis.set(
         minor_locator=AutoMinorLocator()
     )
+    ax.set_ylim(ymin=0)
     ax.grid(which='both')
     ax.grid(which='minor', alpha=0.3)
     ax2 = ax.twinx()
@@ -69,7 +71,7 @@ def figday(post=True, private=False):
         import itertools
         return itertools.chain(*[items[i::ncol] for i in range(ncol)])
     ax.legend(flip(handles, 4), flip(labels, 4), bbox_to_anchor=(0.5, -0.12), loc='upper center', ncol=4, fancybox=True, shadow=True, prop=fp)
-    ax.set_title('%s 單日走勢'%_date, fontproperties=fptitle)
+    ax.set_title('%s 單日走勢'%_date_1, fontproperties=fptitle)
     ax.text(1, 1.1, '更新: %s'%(x[-1].strftime('%Y-%m-%d %H:%M:%S')), color='dimgray', ha='center', transform=ax.transAxes, fontproperties=fp, size=8)
     ax.text(1, -0.25, 'plurk: mltdch0annivbot', color='gray', ha='center', size=7, transform=ax.transAxes)
     fig.autofmt_xdate()
@@ -77,34 +79,17 @@ def figday(post=True, private=False):
     
     if not post: return
     
-    def post_img(private=False, retry=5):
-        from plurk_oauth import PlurkAPI
-        plurk = PlurkAPI.fromfile('./API.keys')
-        res = None
-        for i in range(retry):
-            try: res = plurk.callAPI('/APP/Timeline/uploadPicture', fpath=figname)
-            except: pass
-            else: break
-        if not res: return None
-        options = {'content': '"劇場時光"宣傳製作人應援計畫\n%s 單日走勢\n%s' % (_date, res['full']), 'qualifier': ':'}
-        if private: options['limited_to'] = '[]'
-        for i in range(retry):
-            try: return plurk.callAPI('/APP/Timeline/plurkAdd', options=options)
-            except: pass
-        return None
-    
-    retry = 5
-    for i in range(retry):
-        res = post_img(private=private, retry=retry)
-        if res:
-            print('Success')
-            with open('./log.txt', 'a') as f: f.write('%s\n'%str(res))
-            break
-        if i == retry:
-            print('Failed')
-            msg = 'Failed after %d tries: %s' % (retry, str(date.today()))
-            with open('./log.txt', 'a') as f: f.write('%s\n'%str(msg))
-            break
+    from plurk import url_img, add_plurk
+    url = url_img(figname)
+    if not url:
+        with open('./log.txt', 'a') as f: f.write('Failed to upload image %s\n'%date.today().strftime('%Y-%m-%d %H:%M:%S'))
+        return
+    msg = '"劇場時光"宣傳製作人應援計畫\n%s 單日走勢\n%s' % (_date_1, url)
+    res = add_plurk(msg, private=private)
+    if not res:
+        with open('./log.txt', 'a') as f: f.write('Failed to add plurk %s\n'%date.today().strftime('%Y-%m-%d %H:%M:%S'))
+        return
+    with open('./log.txt', 'a') as f: f.write('%s\n'%str(res))
 
 if __name__ == '__main__':
     import sys

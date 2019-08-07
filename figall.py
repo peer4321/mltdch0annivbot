@@ -7,6 +7,7 @@ def figall(post=True, private=False):
     figdir = './figures'
     figname = figdir + '/figall.png'
     os.makedirs(figdir, exist_ok=True)
+    
     records = []
     with open('./journal.txt', 'r') as f:
         for line in f.readlines():
@@ -47,6 +48,7 @@ def figall(post=True, private=False):
     ax.yaxis.set(
         minor_locator=AutoMinorLocator()
     )
+    ax.set_ylim(ymin=0)
     ax.grid(which='both')
     ax.grid(which='minor', alpha=0.3)
     ax2 = ax.twinx()
@@ -69,34 +71,17 @@ def figall(post=True, private=False):
     
     if not post: return
     
-    def post_img(private=False, retry=5):
-        from plurk_oauth import PlurkAPI
-        plurk = PlurkAPI.fromfile('./API.keys')
-        res = None
-        for i in range(retry):
-            try: res = plurk.callAPI('/APP/Timeline/uploadPicture', fpath=figname)
-            except: pass
-            else: break
-        if not res: return None
-        options = {'content': '"劇場時光"宣傳製作人應援計畫\n排名走勢圖\n%s\n更新時間: %s' % (res['full'], x[-1].strftime('%Y-%m-%d %H:%M:%S')), 'qualifier': ':'}
-        if private: options['limited_to'] = '[]'
-        for i in range(retry):
-            try: return plurk.callAPI('/APP/Timeline/plurkAdd', options=options)
-            except: pass
-        return None
-    
-    retry = 5
-    for i in range(retry):
-        res = post_img(private=private, retry=retry)
-        if res:
-            print('Success')
-            with open('./log.txt', 'a') as f: f.write('%s\n'%str(res))
-            break
-        if i == retry:
-            print('Failed')
-            msg = 'Failed after %d tries: %s' % (retry, str(date.today()))
-            with open('./log.txt', 'a') as f: f.write('%s\n'%str(msg))
-            break
+    from plurk import url_img, add_plurk
+    url = url_img(figname)
+    if not url:
+        with open('./log.txt', 'a') as f: f.write('Failed to upload image %s\n'%date.today().strftime('%Y-%m-%d %H:%M:%S'))
+        return
+    msg = '"劇場時光"宣傳製作人應援計畫\n排名走勢: %s\n%s\n' % (x[-1].strftime('%Y-%m-%d %H:%M:%S'), url)
+    res = add_plurk(msg, private=private)
+    if not res:
+        with open('./log.txt', 'a') as f: f.write('Failed to add plurk %s\n'%date.today().strftime('%Y-%m-%d %H:%M:%S'))
+        return
+    with open('./log.txt', 'a') as f: f.write('%s\n'%str(res))
 
 if __name__ == '__main__':
     import sys
