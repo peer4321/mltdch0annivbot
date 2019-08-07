@@ -1,5 +1,7 @@
-logs/*
-log.txt
+__pycache__/
+figures/
+json/
+logs/
 *.otf
-figures/*
 journal.txt
+log.txt

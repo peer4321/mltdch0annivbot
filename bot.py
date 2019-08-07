@@ -67,31 +67,14 @@ def get_msg():
 
 
 def bot(post=True, private=False, retry=5):
-    
+    from plurk import add_plurk
     msg = get_msg()
     if not post: return
-    
-    def post_plurk(msg, private=False, retry=5):
-        from plurk_oauth import PlurkAPI
-        plurk = PlurkAPI.fromfile('./API.keys')
-        options = {'content': msg, 'qualifier': ':'}
-        if private: options['limited_to'] = '[]'
-        for i in range(retry):
-            try: return plurk.callAPI('/APP/Timeline/plurkAdd', options=options)
-            except: pass
-        return None
-    
-    for i in range(retry):
-        res = post_plurk(msg, private=private, retry=retry)
-        if res:
-            print('Success')
-            with open('./log.txt', 'a') as f: f.write('%s\n'%str(res))
-            break
-        if i == retry:
-            print('Failed')
-            msg = 'Failed after %d tries: %s' % (retry, str(date.today()))
-            with open('./log.txt', 'a') as f: f.write('%s\n' % msg)
-            break
+    res = add_plurk(msg, private=private)
+    if not res:
+        with open('./log.txt', 'a') as f: f.write('Failed to add plurk %s\n'%date.today().strftime('%Y-%m-%d %H:%M:%S'))
+        return
+    with open('./log.txt', 'a') as f: f.write('%s\n'%str(res))
 
 
 if __name__ == '__main__':
