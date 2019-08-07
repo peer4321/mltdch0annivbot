@@ -14,8 +14,11 @@ def figall(post=True, private=False):
             ts, pts = line.strip().split('|')
             records.append((ts, pts.split()))
     
+    interval, date = 6, int(datetime.today().strftime('%d'))
+    if date >= 11: interval = 12
+    if date >= 16: interval = 24
     from plot import plot
-    if not plot(figname, '"劇場時光"宣傳製作人應援計畫　排名走勢', records, interval=6):
+    if not plot(figname, '"劇場時光"宣傳製作人應援計畫　排名走勢', records, interval=interval):
         with open('./log.txt', 'a') as f: f.write('\n[Failed]\nFailed to plot (all time) %s\n'%date.today().strftime('%Y-%m-%d %H:%M:%S'))
         return
     
