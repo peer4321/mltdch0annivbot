@@ -22,7 +22,7 @@ def figday(post=True, private=False):
     
     from plot import plot
     if not plot(figname, '%s 單日走勢'%_date_1, records, interval=1, maxticks=12):
-        with open('./log.txt', 'a') as f: f.write('Failed to plot (daily) %s\n'%date.today().strftime('%Y-%m-%d %H:%M:%S'))
+        with open('./log.txt', 'a') as f: f.write('\n[Failed]\nFailed to plot (daily) %s\n'%date.today().strftime('%Y-%m-%d %H:%M:%S'))
         return
     
     if not post: return
@@ -30,14 +30,14 @@ def figday(post=True, private=False):
     from plurk import url_img, add_plurk
     url = url_img(figname)
     if not url:
-        with open('./log.txt', 'a') as f: f.write('Failed to upload image %s\n'%date.today().strftime('%Y-%m-%d %H:%M:%S'))
+        with open('./log.txt', 'a') as f: f.write('\n[Failed]\nFailed to upload image %s\n'%date.today().strftime('%Y-%m-%d %H:%M:%S'))
         return
     msg = '"劇場時光"宣傳製作人應援計畫\n%s 單日走勢\n%s' % (_date_1, url)
     res = add_plurk(msg, private=private)
     if not res:
-        with open('./log.txt', 'a') as f: f.write('Failed to add plurk %s\n'%date.today().strftime('%Y-%m-%d %H:%M:%S'))
+        with open('./log.txt', 'a') as f: f.write('\n[Failed]\nFailed to add plurk %s\n'%date.today().strftime('%Y-%m-%d %H:%M:%S'))
         return
-    with open('./log.txt', 'a') as f: f.write('%s\n'%str(res))
+    with open('./log.txt', 'a') as f: f.write('\n[Success]\n%s\n'%str(res))
 
 if __name__ == '__main__':
     import sys

@@ -85,9 +85,9 @@ def bot(post=True, private=False, retry=5, nosave=False):
     if not post: return msg
     res = add_plurk(msg, private=private, retry=retry)
     if not res:
-        with open('./log.txt', 'a') as f: f.write('Failed to add plurk %s\n'%date.today().strftime('%Y-%m-%d %H:%M:%S'))
+        with open('./log.txt', 'a') as f: f.write('\n[Failed]\nFailed to add plurk %s\n'%date.today().strftime('%Y-%m-%d %H:%M:%S'))
         return None
-    with open('./log.txt', 'a') as f: f.write('%s\n'%str(res))
+    with open('./log.txt', 'a') as f: f.write('\n[Success]\n%s\n'%str(res))
     return res
 
 
