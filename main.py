@@ -16,7 +16,7 @@ if __name__ == '__main__':
     mm = int(now.strftime('%M'))
     hh = int(now.strftime('%H'))
     
-    if hh % 6 == 0 and mm < 30:
+    if hh % 3 == 0 and mm < 30:
         journal()
         figall(private=private, post=post)
         if hh == 0: figday(private=private, post=post)
